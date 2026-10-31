@@ -1,0 +1,268 @@
+# AcoustiLab — Copie de publication GitHub / Streamlit Community Cloud
+
+Version 1.0 — 31 octobre 2026
+
+Cette archive contient exactement app.py, requirements.txt et README.
+Le dossier source d’origine conserve le nom demandé requirement.text.
+Dans CETTE copie, le manifeste porte requirements.txt pour être détecté par Cloud.
+
+Installation et lancement de CETTE copie :
+
+    python -m pip install -r requirements.txt
+    python -m streamlit run app.py
+
+Bibliothèques : Streamlit pour l’interface ; pandas pour les tableaux ; NumPy
+pour le calcul et les simulations ; SciPy pour Wilson et la loi binomiale ;
+Altair pour les graphiques ; openpyxl pour Excel ; ReportLab pour les PDF.
+Environnement testé : Python 3.14 et Streamlit 1.65. Refaire les contrôles si
+les versions installées changent. Aucune clé API n’est nécessaire.
+Les données restent en session : sauvegarder le carnet JSON avant fermeture.
+
+Créer un dépôt GitHub VIDE, puis téléverser ensemble app.py, requirements.txt
+et README à la racine du dépôt et sur la même branche. Valider les fichiers.
+On peut aussi utiliser VS Code dans le dossier de cette copie :
+
+    git init
+    git add app.py requirements.txt README
+    git commit -m "Premiere version de AcoustiLab"
+    git branch -M main
+
+Ajouter origin avec l’adresse du dépôt réellement créé, vérifier git remote -v,
+puis envoyer avec git push -u origin main. Aucune URL n’est préconfigurée.
+Ne pas réutiliser le dossier Git d’une autre application.
+
+Dans Streamlit Community Cloud : New app, choisir dépôt, branche réelle et app.py.
+Si Paste URL est proposé : fournir l’URL GitHub du FICHIER, .../blob/main/app.py.
+Le lien public final se termine par .streamlit.app ; localhost reste local.
+
+Pour une mise à jour : tester puis, dans la copie de publication :
+
+    git status
+    git add app.py requirements.txt README
+    git commit -m "Mise a jour de AcoustiLab"
+    git push
+
+Cette préparation ne crée aucun dépôt et ne publie aucune application.
+
+## 2. Prise en main et rubriques
+
+L’accueil ne charge aucune donnée automatiquement. Cliquer sur « Charger les
+8 observations fictives » pour une démonstration. Ce bouton remplace le carnet
+actif par l’exemple ; sauvegarder le JSON avant de charger une autre source.
+L’origine fictive apparaît dans le bandeau et dans le rapport.
+
+Tableau de bord : effectif, médiane, dépassements, maximum saisi, séquence des
+observations et cartes d’activités. L’illustration du bandeau est décorative ;
+elle ne représente pas une mesure ou un fichier audio.
+
+Observations : formulaire, import CSV/XLSX, édition/suppression des lignes,
+journal d’exclusion et export brut. La saisie ajoute une ligne ; l’import et
+la restauration remplacent le carnet après confirmation explicite.
+L’éditeur conserve les cellules invalides dans le brut : consulter le journal.
+
+Comparer et calculer : regroupement par activité, point ou créneau ; dispersion,
+tableau, comparaison de deux moyennes arithmétiques ; regroupement énergétique
+conditionnel et deux calculateurs autonomes. Le graphique montre au plus
+20 groupes ; le tableau et les exports restent complets.
+
+Probabilités : fréquence observée, histogramme, sélection d’un groupe comparable,
+Wilson à 95 %, projection binomiale et simulation de 1 000, 10 000 ou 50 000 séries.
+Les hypothèses doivent être activées avant l’inférence. Aucune loi normale n’est
+imposée aux niveaux sonores. Aucun CV des dB n’est utilisé.
+
+Rapports et méthodes : rapport PDF personnalisable, classeur Excel, sélection
+CSV, sauvegarde/restauration JSON, formules et parcours de test.
+Le rapport préparé doit être régénéré si données, filtres ou texte changent.
+
+Filtres communs dans la barre latérale : objectif, points, activités et retrait
+facultatif des doublons complets. Une sélection vide signifie « tous ».
+Après une saisie ou une correction, les filtres sont réinitialisés pour rendre
+les observations visibles. Une restauration reprend les filtres sauvegardés.
+
+## 3. Données à saisir
+
+| Colonne | Contenu |
+|---|---|
+| id | Identifiant facultatif ; un code de ligne est affiché s’il manque |
+| date | AAAA-MM-JJ, facultatif pour les statistiques descriptives |
+| heure | HH:MM, heure locale de début, facultative pour les statistiques |
+| point | Point de mesure, obligatoire |
+| activite | Activité observée, obligatoire |
+| protocole | Identifiant de protocole/campagne et appareil, requis pour l’inférence |
+| type_niveau | Exactement « LAeq de période » ou « Lecture ponctuelle » |
+| niveau_db | Nombre en dB(A), obligatoire |
+| duree_min | Durée positive du LAeq ; laisser vide pour une lecture ponctuelle |
+| note | Contexte et remarques facultatifs |
+
+CSV : séparateur point-virgule, virgule ou tabulation ; décimale point ou virgule.
+En-têtes français du tableau de l’application également reconnus. UTF-8 avec ou
+sans BOM recommandé ; lecture CP1252 prévue pour certains CSV Windows.
+Pour Excel, seule la première feuille est importée. Les dates Excel et heures
+HH:MM:00 sont reconnues ; la précision temporelle attendue est la minute.
+
+Limites informatiques : 10 000 lignes, 35 colonnes, import de 5 Mo ; classeur
+décompressé de 30 Mo et 500 entrées maximum. Niveau compris entre -50 et 200
+dB(A), durée positive au plus 10 080 minutes. Ces bornes ne sont pas des normes
+ni des limites de mesure garanties. Aucune donnée invalide n’est imputée.
+L’éditeur intégré est proposé jusqu’à 1 500 lignes ; au-delà, modifier le CSV.
+Les colonnes non reconnues sont signalées puis ignorées.
+
+Une ligne est exclue si une valeur requise manque, si le type est inconnu,
+si la durée est incompatible avec le type, ou si une date/heure renseignée est
+invalide. Une ligne sans date peut rester exploitable pour le comptage ; elle
+ne permet pas le regroupement énergétique du carnet.
+
+## 4. Calculs descriptifs et acoustiques
+
+Un dépassement utilise strictement niveau_db > objectif. Une valeur égale à
+l’objectif ne compte pas. Le repère initial de 75 dB(A) est choisi pour
+l’exercice ; aucune réglementation locale n’est présumée.
+
+Fréquence observée = nombre de dépassements / nombre d’observations.
+Moyenne arithmétique = somme des valeurs en dB / n.
+Variance d’échantillon = somme des écarts à cette moyenne au carré / (n-1).
+Écart-type = racine de la variance ; non estimable pour une seule valeur.
+
+La moyenne arithmétique des dB n’est PAS un niveau équivalent.
+Le maximum des valeurs saisies n’est pas automatiquement un LAmax mesuré.
+Le décibel est logarithmique ; zéro dB ne signifie pas absence d’énergie.
+
+LAeq regroupé pour des périodes successives au même point :
+
+    LAeq = 10 log10[ somme(t_i × 10^(L_i/10)) / somme(t_i) ]
+
+L_i doit être un LAeq sur la période t_i, en minutes dans l’interface.
+Le calcul ne couvre que les durées renseignées ; les trous de mesure ne sont
+pas inventés. Le regroupement du carnet exige : uniquement des LAeq, même
+point, protocole identifié constant, dates/heures complètes et périodes sans
+chevauchement. Un résultat peut regrouper plusieurs jours observés ; il n’est
+pas automatiquement le niveau d’une journée ou d’un poste de travail.
+
+Contributions simultanées non corrélées au même récepteur :
+
+    L_total = 10 log10[ somme(10^(L_i/10)) ]
+
+Ne pas combiner des mesures prises à des distances différentes comme si elles
+étaient au même récepteur. Ne pas compter plusieurs fois le même bruit de fond.
+L’outil n’effectue ni propagation, ni calcul d’écran, ni analyse fréquentielle.
+
+## 5. Probabilités : hypothèses explicites
+
+Les groupes d’inférence utilisent le même point, la même activité, le même
+protocole, le même type de niveau et une durée de LAeq exactement identique.
+Pour les lectures ponctuelles, aucune durée n’est inventée. Les groupes sans
+protocole ne sont pas modélisés. Au moins deux observations sont demandées
+pour la démonstration ; cela n’assure pas une bonne représentativité.
+
+Les étiquettes identiques ne prouvent ni comparabilité ni indépendance.
+Des mesures successives peuvent être corrélées. La fréquence globale mélangeant
+plusieurs groupes reste un simple constat. Un petit échantillon produit une
+grande incertitude, même si la simulation comporte beaucoup de séries.
+
+Intervalle de Wilson à 95 % : procédure d’estimation d’une proportion à partir
+du nombre de dépassements. Sous les hypothèses, la méthode vise une couverture
+de 95 % sur des échantillonnages répétés ; ce n’est pas une plage de niveaux dB.
+
+Projection : on fixe p = fréquence observée du groupe et on suppose de nouvelles
+observations indépendantes de probabilité identique. K suit alors une loi
+binomiale B(m,p). L’outil calcule P(K >= nombre choisi), puis simule des séries
+pour comparer l’estimation Monte-Carlo au calcul binomial exact sous ce modèle.
+
+L’incertitude sur p n’est pas propagée dans la projection. La simulation ne
+prouve donc pas le risque futur réel. L’erreur-type Monte-Carlo affichée vaut
+racine[p_sim × (1-p_sim) / nombre de séries]. À p égal à 0 ou 1, elle est nulle
+sous le modèle fixé ; cela ne signifie pas absence d’incertitude sur le terrain.
+La graine aléatoire permet de reproduire une simulation.
+
+## 6. Exemple fictif et tests à refaire à la main
+
+Huit niveaux : 68 ; 70 ; 72 ; 74 ; 76 ; 78 ; 80 ; 82 dB(A).
+Même point P-01, protocole FICTIF-01, LAeq de 10 minutes commençant toutes
+les 15 minutes à partir de 08:00. Les intervalles non observés restent exclus.
+Préparation : 68, 72, 76, 80. Terrassement : 70, 74, 78, 82.
+
+| Outil | Saisie / action | Résultat attendu |
+|---|---|---|
+| Tableau de bord | Exemple, objectif 75 | 8 observations, médiane 75, maximum 82 |
+| Dépassements | Niveau strictement > 75 | 4/8 = 50 % |
+| Descriptif | Huit niveaux | Moyenne 75 dB ; variance 24 dB² ; écart-type 4,89898 dB |
+| Comparaison | Préparation puis terrassement | Moyennes 74 et 76 dB ; B-A = 2 dB |
+| Périodes successives | 60 et 70 dB(A), 60 min chacun | 67,40363 dB(A), sur 120 min |
+| Durées différentes | 60 pendant 90 min, 70 pendant 10 min | 62,78754 dB(A) |
+| Sources simultanées | 60 et 60 au même récepteur | 63,01030 dB(A) |
+| Wilson | Une activité, hypothèses activées | 2/4 = 50 % ; intervalle ≈ 15,00390–84,99610 % |
+| Binomiale | p=0,5 ; 10 observations ; au moins 6 | 37,6953125 % |
+| Monte-Carlo | 10 000 séries, graine 42 | Valeur voisine du calcul ; erreur-type ≈ 0,48 point |
+| Changement d’objectif | Passer à 76 dB(A) | 3/8 = 37,5 % ; le 76 ne dépasse pas |
+| Import avec erreur | Remplacer un niveau par « abc » | Ligne visible dans le journal, exclue des calculs |
+| Restauration | Sauvegarder JSON puis le réimporter | Même carnet et mêmes filtres |
+
+Vérification binomiale à la calculatrice : pour une probabilité 1/2,
+P(K >= 6) = [C(10,6)+C(10,7)+C(10,8)+C(10,9)+C(10,10)] / 2^10
+= (210+120+45+10+1) / 1024 = 386/1024.
+La simulation aléatoire ne donne pas nécessairement exactement cette valeur.
+
+## 7. Exports et conservation
+
+PDF : provenance, filtres, objectif, descriptif, activités, graphiques et
+conclusion éditable. L’intervalle de Wilson étudié peut être inclus explicitement.
+La projection et les réalisations Monte-Carlo ne sont pas incluses dans le PDF.
+Les graphiques PDF limitent les activités à 12 et les observations à 25 ; les
+indicateurs portent sur toute la sélection. Tableau d’activités limité à 30.
+
+Excel : feuilles Selection, Activites, Nettoyage, Brut et Contexte.
+Les cellules texte sont exportées comme texte et non comme formules Excel.
+CSV : UTF-8 BOM, point-virgule et virgule décimale. Les textes pouvant être
+interprétés comme formules reçoivent une apostrophe ; les niveaux numériques
+négatifs restent des nombres. Pour une conservation fidèle, utiliser le JSON.
+
+JSON : données brutes, source déclarée, objectif, filtres et option de doublons.
+Il ne contient ni brouillon de rapport, ni simulation. Taille de restauration
+limitée à 12 Mo. Une provenance fictive altérée est relabellisée. Le fichier
+contient les informations du carnet : le conserver avec les documents du projet.
+Il n’existe aucune base persistante et aucun transfert vers un service tiers.
+
+## 8. Sources et limites de portée
+
+Les relations et méthodes sont documentées par :
+
+- INRS, décibels et composition des niveaux :
+  https://www.inrs.fr/risques/bruit/definitions.html
+- ACNAW, notion de niveau équivalent :
+  https://acnaw.be/home/le-bruit/le-bruit-en-general/ses-indicateurs/niveau-equivalent--leqt.html
+- NIST/SEMATECH, intervalle de Wilson :
+  https://www.itl.nist.gov/div898/handbook/prc/section2/prc241.htm
+
+Ces sources décrivent les méthodes, pas les données fictives. L’application
+ne certifie aucune conformité acoustique, aucun état de santé ni aucune
+exposition réglementaire. Des mesures réelles demandent un matériel et un
+protocole adaptés. La distance, les réflexions, la météo et le bruit de fond
+ne sont pas modélisés. Une comparaison ne démontre pas une causalité.
+
+## 10. Vérifications de livraison
+
+Contrôles effectués le 31 octobre 2026 :
+
+- 47 tests automatisés réussis : calculs descriptifs et énergétiques, limites,
+  dates, types de niveaux, doublons, regroupement, Wilson, loi binomiale,
+  simulation reproductible, CSV/XLSX/JSON, exports et chargement de l’interface.
+- Navigation des cinq rubriques et mise en page contrôlées dans Microsoft Edge
+  sur quatre largeurs : 1 440, 768, 390 et 320 pixels. Aucun débordement
+  horizontal de page constaté ; les tableaux restent défilables à l’intérieur.
+- Parcours complet sur 1 440 et 390 pixels : saisie avec validation, import
+  contenant une ligne invalide, deux calculateurs, sélection de groupe,
+  hypothèses, simulation, exports réels, restauration JSON et objectif modifié.
+- Rapport : champs conservés entre les pages et téléchargement préparé retiré
+  lorsque le titre est modifié. Contrastes de navigation et en-têtes corrigés.
+- Six PDF de contrôle inspectés : cinq de trois pages, un de six pages avec
+  nombreux libellés longs et longue conclusion. Pages rendues en images,
+  caractères dans les limites, sans coupure ni chevauchement constaté. Les
+  titres restent attachés à leur contenu et les sources sont regroupées.
+- Résultats de référence retrouvés : 4/8 dépassements ; 67,40363 et 63,01030
+  dB(A) pour les calculateurs ; 37,6953125 % pour la projection binomiale.
+
+Les fichiers de contrôle restent hors du dossier livré. Les tests aux formats
+mobiles utilisent un navigateur redimensionné, pas un téléphone physique.
+Il reste à vérifier sur un vrai téléphone et après publication publique,
+notamment avec une connexion lente et les versions installées sur le Cloud.
+Aucun dépôt GitHub ni hébergement public n’a été créé pendant ces tests.
